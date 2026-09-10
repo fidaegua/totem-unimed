@@ -1,0 +1,171 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#071f27" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Totem Unimed — Acolhimento</title>
+  <link rel="icon" type="image/x-icon" href="/static/unimed.ico">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="app-shell" role="application" aria-label="Totem Unimed">
+    <header class="topbar glass-card" role="banner">
+      <div class="brand" aria-hidden="true">
+        <div class="brand-mark"><img src="/static/unimed.ico" alt=""></div>
+        <div class="brand-copy">
+          <span>Unimed</span>
+          <small>Pronto Atendimento</small>
+        </div>
+      </div>
+      <div class="clock" id="clock" aria-live="polite">--:--</div>
+    </header>
+
+    <main class="screen-container">
+      <!-- Login / Welcome -->
+      <section id="screen-welcome" class="screen screen-active" aria-labelledby="welcome-title">
+        <div class="welcome-panel glass-card">
+          <div class="welcome-copy">
+            <p class="eyebrow">Acesso ao atendimento</p>
+            <h1 id="welcome-title">Passe sua senha no leitor</h1>
+            <p class="subtitle">Aproxime o código de barras da sua senha do leitor e aguarde a identificação.</p>
+          </div>
+
+          <div class="scanner-panel">
+            <div class="scanner-visual" aria-hidden="true">
+              <span class="scanner-line"></span>
+              <span class="barcode-bars"></span>
+            </div>
+            <div class="scanner-status">
+              <span class="status-dot" aria-hidden="true"></span>
+              <span id="scanner-status">Aguardando leitura</span>
+            </div>
+            <label class="scanner-label" for="scanner-input">Código lido</label>
+            <input id="scanner-input" class="scanner-input" type="text" inputmode="none" autocomplete="off" autocapitalize="characters" placeholder="Aproxime sua senha do leitor" aria-describedby="scanner-help" />
+            <p id="scanner-help" class="scanner-help">O leitor identificará sua senha automaticamente.</p>
+            <button class="continue-button" type="button" data-action="consultar">Continuar <span aria-hidden="true">→</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dashboard (kiosk fixed screen) -->
+      <section id="screen-dashboard" class="screen screen-hidden" aria-live="polite">
+        <div class="tab-navigation glass-card" role="tablist" aria-label="Navegação principal">
+          <button class="tab-button active" data-tab="medical-record" role="tab" aria-selected="true">📋<span>Ficha Médica</span></button>
+          <button class="tab-button" data-tab="chat" role="tab">💬<span>Conversa</span></button>
+          <button class="tab-button" data-tab="queue" role="tab">📊<span>Fila</span></button>
+        </div>
+
+        <div class="dashboard-container">
+          <!-- Medical Record -->
+          <div class="tab-content active" id="tab-medical-record" role="tabpanel">
+            <div class="medical-card glass-card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">Ficha do Paciente</p>
+                  <h2 id="medical-patient-name">--</h2>
+                </div>
+                <span id="medical-risk-badge" class="risk-badge">--</span>
+              </div>
+
+              <div class="medical-info">
+                <div class="info-section">
+                  <h3>Informações Gerais</h3>
+                  <div class="info-grid">
+                    <div class="info-item"><span class="label">Código</span><strong id="medical-code">--</strong></div>
+                    <div class="info-item"><span class="label">Status</span><strong id="medical-status">--</strong></div>
+                    <div class="info-item"><span class="label">Posição</span><strong id="medical-position">--</strong></div>
+                    <div class="info-item"><span class="label">Tempo</span><strong id="medical-time">--</strong></div>
+                  </div>
+                </div>
+
+                <div class="info-section">
+                  <h3>Notas da Conversa</h3>
+                  <div class="conversation-notes glass-card subtle" id="notes-box" tabindex="0">
+                    <p id="medical-notes">Nenhuma anotação até o momento. Converse com o assistente para gerar anotações.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Tab -->
+          <div class="tab-content" id="tab-chat" role="tabpanel">
+            <div class="chat-container glass-card">
+              <div class="chat-header">
+                <div class="ai-avatar-sphere" aria-hidden="true"></div>
+                <div>
+                  <p class="eyebrow">Assistente IA Unimed</p>
+                  <h3>Fale conosco</h3>
+                </div>
+              </div>
+
+              <div class="ai-welcome-message">
+                <p id="chat-ai-message">Consultando sua situação e preparando seu atendimento...</p>
+              </div>
+
+              <div class="chat-input-section">
+                <textarea id="chat-question" rows="4" maxlength="400" placeholder="Fale ou digite sua pergunta aqui..."></textarea>
+                <div class="question-actions">
+                  <button id="chat-voice" class="voice-button" type="button" aria-label="Usar microfone" title="Falar sua pergunta">
+                    <img src="/static/microfone.png" alt="">
+                  </button>
+                  <button id="chat-send" class="primary-button" type="button">Enviar</button>
+                </div>
+                <p id="chat-status" class="voice-status" aria-live="polite">Fale ou digite sua pergunta e o assistente responderá.</p>
+
+                <div id="chat-response" class="chat-response" style="display:none;" aria-live="polite">
+                  <div class="response-header"><span class="response-label">Resposta</span></div>
+                  <p id="chat-response-text"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Queue Tab -->
+          <div class="tab-content" id="tab-queue" role="tabpanel">
+            <div class="queue-container glass-card">
+              <div class="queue-header">
+                <p class="eyebrow">Sua Posição</p>
+                <h2 id="queue-position" class="queue-large-number">--</h2>
+                <p class="queue-subtitle">na fila</p>
+              </div>
+
+              <div class="queue-stats">
+                <div class="stat-box"><span class="stat-label">Pessoas na frente</span><strong id="queue-ahead" class="stat-value">--</strong></div>
+                <div class="stat-box"><span class="stat-label">Tempo estimado</span><strong id="queue-time" class="stat-value">--</strong></div>
+                <div class="stat-box"><span class="stat-label">Status</span><strong id="queue-status" class="stat-value">--</strong></div>
+              </div>
+
+              <div class="queue-info-box glass-card subtle">
+                <h3>Informações</h3>
+                <ul>
+                  <li>✓ Sua senha foi registrada no sistema</li>
+                  <li>✓ A equipe está preparando seu atendimento</li>
+                  <li>✓ Você será chamado quando chegar sua vez</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button id="logout-btn" class="secondary-button logout-button" type="button">← Sair</button>
+      </section>
+
+      <!-- Loading -->
+      <section id="screen-loading" class="screen screen-hidden">
+        <div class="loading-card glass-card">
+          <div class="loading-orb" aria-hidden="true"></div>
+          <h2>Consultando sua situação e preparando seu atendimento...</h2>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/js/app.js?v=voice-png"></script>
+</body>
+</html>

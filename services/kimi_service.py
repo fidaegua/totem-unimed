@@ -1,0 +1,90 @@
+import json
+from typing import Any, Optional
+
+import httpx
+
+from config import MOONSHOT_API_KEY, MOONSHOT_BASE_URL
+
+SYSTEM_PROMPT = """Você é o assistente virtual de acolhimento do Pronto Atendimento Unimed. Sua missão é traduzir informações técnicas da triagem e fila de espera em uma comunicação clara, empática, transparente e tranquilizadora para o paciente ou seu acompanhante.
+
+Regras inegociáveis:
+1. Jamais forneça diagnósticos, avaliações de sintomas, prescrições de remédios ou conselhos clínicos.
+2. Explique a dinâmica do hospital quando necessário (ex: por que pacientes com prioridade mais alta passam na frente de casos de menor risco).
+3. Use um tom caloroso, educado e reconfortante em Português Brasileiro.
+4. Mantenha o texto em no máximo 3 ou 4 frases curtas e objetivas, ideais para leitura rápida em um totem.
+5. Se o paciente perguntar sobre alimentação/água, oriente-o sempre a consultar a enfermagem antes de ingerir qualquer alimento.
+"""
+
+
+async def gerar_mensagem_acolhimento(paciente_data: dict, duvida_extra: Optional[str] = None) -> str:
+    """Gera uma mensagem acolhedora para o paciente com suporte da API da Moonshot AI."""
+    base_url = (MOONSHOT_BASE_URL or "https://api.moonshot.cn/v1").rstrip("/")
+    api_key = (MOONSHOT_API_KEY or "").strip()
+
+    classificacao = paciente_data.get("classificacao_risco", "Não informado")
+    tempo_estimado_texto = f"{paciente_data.get('tempo_estimado_minutos', 0)} minutos"
+    duvida = (duvida_extra or "").strip()
+
+    mensagem_user = {
+        "nome": paciente_data.get("nome_social", "Paciente"),
+        "senha": paciente_data.get("senha", "---"),
+        "classificacao": classificacao,
+        "posicao_na_fila": paciente_data.get("posicao_fila", 0),
+        "tempo_estimado": tempo_estimado_texto,
+        "status": paciente_data.get("status_atual", "Em espera"),
+        "urgencias_graves_sendo_atendidas": paciente_data.get("casos_urgentes_no_momento", 0),
+        "duvida_opcional": duvida,
+    }
+
+    if not api_key:
+        return (
+            "Sua senha foi registrada e a equipe está organizando o atendimento conforme a prioridade clínica. "
+            "Enquanto isso, você pode seguir acompanhando o painel da recepção e a enfermagem irá orientar sobre o próximo passo."
+        )
+
+    payload = {
+        "model": "kimi-k3",
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": json.dumps(mensagem_user, ensure_ascii=False)},
+        ],
+        "temperature": 0.3,
+        "max_tokens": 350,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                f"{base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+
+            if response.status_code in {401, 403}:
+                return "Não foi possível validar sua autenticação com a IA no momento. A equipe segue a prioridade médica e o atendimento continuará de forma segura."
+
+            if response.status_code in {402, 429}:
+                return "Sua solicitação está em fila de atendimento e a equipe continua priorizando pacientes conforme a gravidade. Em breve, o próximo passo será informado."
+
+            response.raise_for_status()
+            dados = response.json()
+            mensagem = dados.get("choices", [{}])[0].get("message", {}).get("content", "")
+            if mensagem:
+                return mensagem.strip()
+    except httpx.TimeoutException:
+        return (
+            "A sua posição segue sendo avaliada em ordem de prioridade e a equipe está cuidando dos casos mais urgentes. "
+            "Você será chamado com atenção e transparência assim que a fila for atualizada."
+        )
+    except httpx.RequestError:
+        return "Estamos ajustando a comunicação do atendimento e a equipe segue com as orientações clínicas. Aguarde, que em breve será informado o próximo passo."
+    except Exception:
+        return "A fila está sendo organizada pela equipe médica e a prioridade clínica é respeitada. Você será acompanhado com atenção e receberá as informações necessárias no momento certo."
+
+    return (
+        "Sua senha foi registrada e o atendimento segue a ordem de urgência conforme a classificação de risco. "
+        "A equipe está organizada para acompanhar você com atenção e transparência."
+    )

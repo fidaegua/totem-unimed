@@ -1,0 +1,17 @@
+{
+  "name": "Totem Unimed - Acolhimento",
+  "short_name": "Totem Unimed",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#071f27",
+  "theme_color": "#071f27",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/static/unimed.ico",
+      "sizes": "256x256",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    }
+  ]
+}
