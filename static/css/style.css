@@ -1,5 +1,11 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,600;6..96,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap');
 
+@font-face {
+  font-family: 'OpenDyslexicAlta';
+  src: url('/static/fonts/OpenDyslexicAlta-Regular.otf') format('opentype');
+  font-display: swap;
+}
+
 :root {
   --ink: #071f27;
   --ink-soft: #0b3037;
@@ -37,6 +43,14 @@ body::before, body::after {
 body::before { top: -28vw; right: -12vw; background: #126e71; }
 body::after { bottom: -32vw; left: -14vw; background: #173b57; }
 
+body.dyslexia-mode, body.dyslexia-mode button, body.dyslexia-mode textarea, body.dyslexia-mode input { font-family: 'OpenDyslexicAlta', sans-serif; }
+body.dyslexia-mode h1, body.dyslexia-mode h2, body.dyslexia-mode h3, body.dyslexia-mode .brand-copy span { font-family: 'OpenDyslexicAlta', sans-serif; letter-spacing: .02em; }
+body.colorblind-mode { --teal: #f4d35e; --teal-deep: #b8860b; --coral: #4cc9f0; --paper: #ffffff; --muted: #d7e2e2; --line: rgba(255, 255, 255, .38); --glass: rgba(255, 255, 255, .14); background: #101820; }
+body.colorblind-mode::before { background: #005f73; }
+body.colorblind-mode::after { background: #2a4858; }
+body.font-large { font-size: 112.5%; }
+body.font-xlarge { font-size: 125%; }
+
 button, textarea { font: inherit; }
 button { cursor: pointer; }
 button:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
@@ -47,7 +61,7 @@ button:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 .glass-card { background: var(--glass); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
 .subtle { background: rgba(6, 31, 38, .28); box-shadow: none; }
 
-.topbar { width: 100%; max-width: var(--max-width); display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; }
+.topbar { width: 100%; max-width: var(--max-width); display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 20px; }
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand-mark { width: 44px; height: 44px; display: grid; place-items: center; overflow: hidden; border-radius: 14px 14px 14px 4px; background: var(--teal); box-shadow: 0 0 0 7px rgba(105, 224, 211, .1); }
 .brand-mark img { width: 100%; height: 100%; object-fit: cover; }
@@ -55,6 +69,12 @@ button:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 .brand-copy span { font-family: 'Bodoni Moda', serif; font-size: 1.15rem; }
 .brand-copy small, .eyebrow, .label, .stat-label { color: var(--muted); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; }
 .clock { padding: 8px 12px; color: var(--teal); border-left: 1px solid var(--line); font-family: 'DM Mono', monospace; font-size: .9rem; }
+.accessibility-tools { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-left: auto; }
+.accessibility-button { min-height: 34px; padding: 6px 9px; color: var(--muted); background: rgba(236, 255, 249, .06); border: 1px solid var(--line); border-radius: 9px; font-size: .72rem; font-weight: 700; }
+.accessibility-button:hover, .accessibility-button[aria-pressed='true'] { color: var(--ink); background: var(--teal); border-color: var(--teal); }
+.accessibility-button span { margin-left: 3px; font-weight: 600; }
+.font-size-control { display: flex; gap: 3px; padding-left: 4px; border-left: 1px solid var(--line); }
+.icon-button { min-width: 32px; padding-right: 6px; padding-left: 6px; }
 .screen-container { width: 100%; max-width: var(--max-width); min-height: 0; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .screen { display: none; height: 100%; min-height: 0; }
 .screen-active { display: flex; animation: rise .55s ease both; }
@@ -140,7 +160,12 @@ h3 { margin-bottom: 14px; font-size: 1rem; }
 @keyframes scan { 0%, 100% { transform: translateY(-45px); opacity: .45; } 50% { transform: translateY(45px); opacity: 1; } }
 @media (max-width: 720px) {
   .app-shell { padding: 10px; gap: 10px; }
-  .topbar { padding: 11px 14px; }
+  .topbar { flex-wrap: wrap; padding: 11px 14px; }
+  .accessibility-tools { width: 100%; justify-content: stretch; }
+  .accessibility-tools > .accessibility-button { flex: 1; }
+  .accessibility-button span { display: inline; }
+  .font-size-control { flex: 1; }
+  .font-size-control .accessibility-button { flex: 1; }
   .welcome-panel { grid-template-columns: 1fr; align-content: center; gap: 14px; padding: 18px 14px; }
   h1 { margin-bottom: 10px; font-size: clamp(2.4rem, 12vw, 4rem); }
   .subtitle { font-size: .9rem; line-height: 1.35; }

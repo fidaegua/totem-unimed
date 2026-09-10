@@ -23,6 +23,15 @@
         </div>
       </div>
       <div class="clock" id="clock" aria-live="polite">--:--</div>
+      <div class="accessibility-tools" aria-label="Ferramentas de acessibilidade">
+        <button id="dyslexia-toggle" class="accessibility-button" type="button" aria-pressed="false" title="Ativar fonte para dislexia">Aa <span>Dislexia</span></button>
+        <button id="colorblind-toggle" class="accessibility-button" type="button" aria-pressed="false" title="Ativar alto contraste para daltonismo">◐ <span>Contraste</span></button>
+        <div class="font-size-control" role="group" aria-label="Tamanho do texto">
+          <button id="font-decrease" class="accessibility-button icon-button" type="button" aria-label="Diminuir tamanho do texto" title="Diminuir texto">A−</button>
+          <button id="font-reset" class="accessibility-button icon-button" type="button" aria-label="Restaurar tamanho do texto" title="Restaurar texto">A</button>
+          <button id="font-increase" class="accessibility-button icon-button" type="button" aria-label="Aumentar tamanho do texto" title="Aumentar texto">A+</button>
+        </div>
+      </div>
     </header>
 
     <main class="screen-container">

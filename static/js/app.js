@@ -20,6 +20,37 @@ const clockEl = document.getElementById('clock');
 const chatStatus = document.getElementById('chat-status');
 const chatVoiceButton = document.getElementById('chat-voice');
 const chatQuestionEl = document.getElementById('chat-question');
+const accessibilityStorageKey = 'totem-unimed-accessibility';
+
+function applyAccessibilitySettings(settings){
+  document.body.classList.toggle('dyslexia-mode', settings.dyslexia);
+  document.body.classList.toggle('colorblind-mode', settings.colorblind);
+  document.body.classList.toggle('font-large', settings.fontSize === 'large');
+  document.body.classList.toggle('font-xlarge', settings.fontSize === 'xlarge');
+  document.getElementById('dyslexia-toggle')?.setAttribute('aria-pressed', String(settings.dyslexia));
+  document.getElementById('colorblind-toggle')?.setAttribute('aria-pressed', String(settings.colorblind));
+}
+
+function loadAccessibilitySettings(){
+  try { return { dyslexia: false, colorblind: false, fontSize: 'normal', ...JSON.parse(localStorage.getItem(accessibilityStorageKey) || '{}') }; }
+  catch(error){ return { dyslexia: false, colorblind: false, fontSize: 'normal' }; }
+}
+
+function saveAccessibilitySettings(settings){
+  localStorage.setItem(accessibilityStorageKey, JSON.stringify(settings));
+  applyAccessibilitySettings(settings);
+}
+
+function initAccessibility(){
+  let settings = loadAccessibilitySettings();
+  applyAccessibilitySettings(settings);
+  const updateSettings = changes => { settings = { ...settings, ...changes }; saveAccessibilitySettings(settings); };
+  document.getElementById('dyslexia-toggle')?.addEventListener('click', ()=>updateSettings({ dyslexia: !document.body.classList.contains('dyslexia-mode') }));
+  document.getElementById('colorblind-toggle')?.addEventListener('click', ()=>updateSettings({ colorblind: !document.body.classList.contains('colorblind-mode') }));
+  document.getElementById('font-decrease')?.addEventListener('click', ()=>updateSettings({ fontSize: settings.fontSize === 'xlarge' ? 'large' : 'normal' }));
+  document.getElementById('font-reset')?.addEventListener('click', ()=>updateSettings({ fontSize: 'normal' }));
+  document.getElementById('font-increase')?.addEventListener('click', ()=>updateSettings({ fontSize: settings.fontSize === 'large' ? 'xlarge' : 'large' }));
+}
 
 function updateClock(){
   const now = new Date();
@@ -155,6 +186,6 @@ function initChatVoice(){
   chatVoiceButton.addEventListener('click', ()=>{ if(chatVoiceButton.classList.contains('is-listening')) state.recognition.stop(); else { chatQuestionEl.focus(); state.recognition.start(); } });
 }
 
-function init(){ updateClock(); setInterval(updateClock,30000); bindEvents(); initChatVoice(); startInactivityTimer(); }
+function init(){ updateClock(); setInterval(updateClock,30000); initAccessibility(); bindEvents(); initChatVoice(); startInactivityTimer(); }
 
 init();
