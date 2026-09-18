@@ -66,7 +66,7 @@ function setActiveScreen(name){
 
 function startInactivityTimer(){
   clearTimeout(state.inactivityTimer);
-  state.inactivityTimer = setTimeout(()=>{ resetFlow(); }, 60000);
+  state.inactivityTimer = setTimeout(()=>{ resetFlow(); }, 300000);
 }
 
 function resetFlow(){
