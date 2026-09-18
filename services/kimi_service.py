@@ -20,6 +20,7 @@ async def gerar_mensagem_acolhimento(paciente_data: dict, duvida_extra: Optional
     """Gera uma mensagem acolhedora para o paciente com suporte da API da Moonshot AI."""
     base_url = (MOONSHOT_BASE_URL or "https://api.moonshot.cn/v1").rstrip("/")
     api_key = (MOONSHOT_API_KEY or "").strip()
+    authorization_header = f"Bearer {api_key}"
 
     classificacao = paciente_data.get("classificacao_risco", "Não informado")
     tempo_estimado_texto = f"{paciente_data.get('tempo_estimado_minutos', 0)} minutos"
@@ -57,7 +58,7 @@ async def gerar_mensagem_acolhimento(paciente_data: dict, duvida_extra: Optional
             response = await client.post(
                 f"{base_url}/chat/completions",
                 headers={
-                    "Authorization": f"Bearer {api_key}",
+                    "Authorization": authorization_header,
                     "Content-Type": "application/json",
                 },
                 json=payload,
