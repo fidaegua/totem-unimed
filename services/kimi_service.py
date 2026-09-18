@@ -1,9 +1,12 @@
 import json
-from typing import Any, Optional
+import logging
+from typing import Optional
 
 import httpx
 
 from config import MOONSHOT_API_KEY, MOONSHOT_BASE_URL
+
+logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """Você é o assistente virtual de acolhimento do Pronto Atendimento Unimed. Sua missão é traduzir informações técnicas da triagem e fila de espera em uma comunicação clara, empática, transparente e tranquilizadora para o paciente ou seu acompanhante.
 
@@ -18,7 +21,7 @@ Regras inegociáveis:
 
 async def gerar_mensagem_acolhimento(paciente_data: dict, duvida_extra: Optional[str] = None) -> str:
     """Gera uma mensagem acolhedora para o paciente com suporte da API da Moonshot AI."""
-    base_url = (MOONSHOT_BASE_URL or "https://api.moonshot.cn/v1").rstrip("/")
+    base_url = (MOONSHOT_BASE_URL or "https://api.moonshot.ai/v1").strip().rstrip("/")
     api_key = (MOONSHOT_API_KEY or "").strip()
 
     classificacao = paciente_data.get("classificacao_risco", "Não informado")
@@ -37,6 +40,7 @@ async def gerar_mensagem_acolhimento(paciente_data: dict, duvida_extra: Optional
     }
 
     if not api_key:
+        logger.warning("Kimi indisponivel: MOONSHOT_API_KEY ausente")
         return (
             "Sua senha foi registrada e a equipe está organizando o atendimento conforme a prioridade clínica. "
             "Enquanto isso, você pode seguir acompanhando o painel da recepção e a enfermagem irá orientar sobre o próximo passo."
@@ -48,12 +52,12 @@ async def gerar_mensagem_acolhimento(paciente_data: dict, duvida_extra: Optional
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": json.dumps(mensagem_user, ensure_ascii=False)},
         ],
-        "temperature": 0.3,
-        "max_tokens": 350,
+        "reasoning_effort": "low",
+        "max_completion_tokens": 4096,
     }
 
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(
                 f"{base_url}/chat/completions",
                 headers={
@@ -62,6 +66,9 @@ async def gerar_mensagem_acolhimento(paciente_data: dict, duvida_extra: Optional
                 },
                 json=payload,
             )
+
+            if response.is_error:
+                logger.warning("Kimi retornou HTTP %s", response.status_code)
 
             if response.status_code in {401, 403}:
                 return "Não foi possível validar sua autenticação com a IA no momento. A equipe segue a prioridade médica e o atendimento continuará de forma segura."
@@ -72,16 +79,20 @@ async def gerar_mensagem_acolhimento(paciente_data: dict, duvida_extra: Optional
             response.raise_for_status()
             dados = response.json()
             mensagem = dados.get("choices", [{}])[0].get("message", {}).get("content", "")
-            if mensagem:
+            if isinstance(mensagem, str) and mensagem.strip():
                 return mensagem.strip()
+            logger.warning("Kimi retornou resposta sem texto final")
     except httpx.TimeoutException:
+        logger.warning("Kimi excedeu o tempo de espera de 60 segundos")
         return (
             "A sua posição segue sendo avaliada em ordem de prioridade e a equipe está cuidando dos casos mais urgentes. "
             "Você será chamado com atenção e transparência assim que a fila for atualizada."
         )
     except httpx.RequestError:
+        logger.warning("Falha de conexao com Kimi")
         return "Estamos ajustando a comunicação do atendimento e a equipe segue com as orientações clínicas. Aguarde, que em breve será informado o próximo passo."
-    except Exception:
+    except Exception as exc:
+        logger.warning("Falha na resposta Kimi: %s", type(exc).__name__)
         return "A fila está sendo organizada pela equipe médica e a prioridade clínica é respeitada. Você será acompanhado com atenção e receberá as informações necessárias no momento certo."
 
     return (
